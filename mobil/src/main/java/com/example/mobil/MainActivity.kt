@@ -1,9 +1,9 @@
 package com.example.mobil
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,1003 +14,447 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mobil.ui.theme.AIHMTheme
-import com.google.android.gms.wearable.*
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.roundToInt
+import com.google.android.gms.wearable.MessageClient
+import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 // =====================================================
-// COLORS
+// AIHM WATCH APP
 // =====================================================
 
-private val BackgroundColor = Color(0xFF0D1B2A)
-private val MainCardColor = Color(0xFF0F2537)
-private val InfoCardColor = Color(0xFF132A3E)
-private val CyanColor = Color(0xFF00E5FF)
+// Colors
+private val BackgroundColor = Color(0xFF101014)
+private val CardColor = Color(0xFF201B1E)
+private val AccentColor = Color(0xFFFF7FA5)
+private val MainTextColor = Color.White
+private val SecondaryTextColor = Color(0xFFD6C5CC)
+private val HeartColor = Color(0xFFFF4D67)
 
-// أحمر غامق للقلب
-private val HeartRed = Color(0xFFB71C1C)
+// Activity choices
+private val ActivityChoices = listOf(
+    "rest" to "Rest",
+    "walking" to "Walking",
+    "exercise" to "Exercise",
+    "recovery" to "Recovery"
+)
 
+class MainActivity :
+    ComponentActivity(),
+    MessageClient.OnMessageReceivedListener {
 
-// =====================================================
-// MAIN ACTIVITY
-// =====================================================
+    // -------------------------------------------------
+    // Activity is OPTIONAL
+    // -------------------------------------------------
 
-class MainActivity : ComponentActivity(),
-    DataClient.OnDataChangedListener {
+    private var selectedActivity by mutableStateOf("unspecified")
 
-    private var heartRate by mutableStateOf<String?>(null)
+    // Heart rate displayed on watch
+    private var heartRate by mutableIntStateOf(0)
 
-    private var measurementTime by mutableStateOf<String?>(null)
-
-    private var latestTimestamp by mutableLongStateOf(0L)
-
-    private var errorMessage by mutableStateOf<String?>(null)
-
-    private var isLoading by mutableStateOf(true)
-
-    private var screenActive = false
-
-    private val dataClient by lazy {
-        Wearable.getDataClient(this)
-    }
-
+    // Measurement status
+    private var measuring by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
 
-        setContent {
+        // =================================================
+        // KEEP WATCH SCREEN ON
+        // =================================================
 
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+
+        setContent {
             AIHMTheme {
 
-                Dashboard(
+                // -----------------------------------------
+                // Start measurement automatically
+                // No activity selection is required
+                // -----------------------------------------
+
+                LaunchedEffect(Unit) {
+                    measuring = true
+
+                    while (true) {
+
+                        /*
+                         * TEMPORARY PROTOTYPE VALUE
+                         *
+                         * This keeps the UI/data connection testable.
+                         * Replace this section with the real
+                         * Health Services heart-rate reading later.
+                         */
+
+                        heartRate = Random.nextInt(
+                            from = 65,
+                            until = 96
+                        )
+
+                        sendHeartRateToPhone(
+                            bpm = heartRate.toDouble()
+                        )
+
+                        delay(5000)
+                    }
+                }
+
+                WatchScreen(
                     heartRate = heartRate,
-                    measurementTime = measurementTime,
-                    errorMessage = errorMessage,
-                    isLoading = isLoading
-                )
-            }
-        }
-    }
+                    measuring = measuring,
+                    selectedActivity = selectedActivity,
+                    onActivitySelected = { activity ->
 
+                        selectedActivity = activity
 
-    // =====================================================
-    // START LISTENING
-    // =====================================================
-
-    override fun onResume() {
-
-        super.onResume()
-
-        screenActive = true
-        errorMessage = null
-
-        // فقط إذا لم توجد قراءة سابقة
-        if (heartRate == null) {
-            isLoading = true
-        }
-
-        dataClient
-            .addListener(this)
-            .addOnSuccessListener {
-
-                if (screenActive) {
-                    loadLatestReading()
-                }
-            }
-            .addOnFailureListener {
-
-                if (screenActive) {
-
-                    isLoading = false
-
-                    errorMessage =
-                        "Could not connect to smartwatch."
-                }
-            }
-    }
-
-
-    // =====================================================
-    // LOAD LAST READING
-    // =====================================================
-
-    private fun loadLatestReading() {
-
-        dataClient.dataItems
-            .addOnSuccessListener { items ->
-
-                var found = false
-
-                try {
-
-                    if (screenActive) {
-
-                        for (item in items) {
-
-                            if (item.uri.path == "/heart_rate") {
-
-                                found = true
-
-                                readHeartRateItem(item)
-                            }
+                        // Immediately send current reading
+                        // with the new activity.
+                        if (heartRate > 0) {
+                            sendHeartRateToPhone(
+                                bpm = heartRate.toDouble()
+                            )
                         }
                     }
-
-                } finally {
-
-                    items.release()
-
-                    if (!found && screenActive) {
-
-                        isLoading = true
-                    }
-                }
-            }
-            .addOnFailureListener {
-
-                if (screenActive) {
-
-                    isLoading = false
-
-                    errorMessage =
-                        "Could not load the last reading."
-                }
-            }
-    }
-
-
-    // =====================================================
-    // RECEIVE NEW WATCH DATA
-    // =====================================================
-
-    override fun onDataChanged(
-        dataEvents: DataEventBuffer
-    ) {
-
-        if (!screenActive) return
-
-        for (event in dataEvents) {
-
-            if (
-                event.type == DataEvent.TYPE_CHANGED &&
-                event.dataItem.uri.path == "/heart_rate"
-            ) {
-
-                errorMessage = null
-
-                readHeartRateItem(
-                    event.dataItem
                 )
             }
         }
     }
 
+    // =================================================
+    // SEND HEART RATE TO PHONE
+    // =================================================
 
-    // =====================================================
-    // READ HEART RATE
-    // =====================================================
-
-    private fun readHeartRateItem(
-        item: DataItem
+    private fun sendHeartRateToPhone(
+        bpm: Double
     ) {
 
-        if (item.uri.path != "/heart_rate") {
+        if (bpm <= 0.0) return
+
+        val request =
+            PutDataMapRequest.create("/heart_rate")
+
+        request.dataMap.putDouble(
+            "bpm",
+            bpm
+        )
+
+        request.dataMap.putLong(
+            "timestamp",
+            System.currentTimeMillis()
+        )
+
+        request.dataMap.putString(
+            "activity",
+            selectedActivity
+        )
+
+        // Forces Data Layer to treat each measurement
+        // as a new update.
+        request.dataMap.putLong(
+            "update_id",
+            System.nanoTime()
+        )
+
+        val dataItem =
+            request
+                .asPutDataRequest()
+                .setUrgent()
+
+        Wearable
+            .getDataClient(this)
+            .putDataItem(dataItem)
+    }
+
+    // =================================================
+    // RECEIVE ACTIVITY FROM PHONE
+    // =================================================
+
+    override fun onMessageReceived(
+        messageEvent: MessageEvent
+    ) {
+
+        if (
+            messageEvent.path != "/set_activity"
+        ) {
             return
         }
 
-        try {
+        val receivedActivity =
+            messageEvent.data.toString(
+                Charsets.UTF_8
+            )
 
-            val data =
-                DataMapItem
-                    .fromDataItem(item)
-                    .dataMap
-
-            if (
-                !data.containsKey("bpm") ||
-                !data.containsKey("timestamp")
-            ) {
-                return
+        val valid =
+            ActivityChoices.any {
+                it.first == receivedActivity
             }
 
-            val bpm =
-                data.getDouble("bpm")
+        if (!valid) return
 
-            val timestamp =
-                data.getLong("timestamp")
+        runOnUiThread {
 
-            if (
-                !bpm.isFinite() ||
-                bpm <= 0 ||
-                timestamp <= 0
-            ) {
-                return
-            }
+            selectedActivity =
+                receivedActivity
 
-            runOnUiThread {
+            // Send a fresh reading so phone can
+            // confirm the activity change.
+            if (heartRate > 0) {
 
-                if (
-                    screenActive &&
-                    timestamp >= latestTimestamp
-                ) {
-
-                    latestTimestamp =
-                        timestamp
-
-                    heartRate =
-                        bpm.roundToInt().toString()
-
-                    measurementTime =
-                        SimpleDateFormat(
-                            "dd MMM yyyy • hh:mm:ss a",
-                            Locale.ENGLISH
-                        ).format(
-                            Date(timestamp)
-                        )
-
-                    errorMessage = null
-                    isLoading = false
-                }
-            }
-
-        } catch (e: Exception) {
-
-            runOnUiThread {
-
-                if (screenActive) {
-
-                    isLoading = false
-
-                    errorMessage =
-                        "Could not read watch data."
-                }
+                sendHeartRateToPhone(
+                    bpm = heartRate.toDouble()
+                )
             }
         }
     }
 
+    // =================================================
+    // MESSAGE LISTENER
+    // =================================================
 
-    // =====================================================
-    // STOP LISTENING
-    // =====================================================
+    override fun onResume() {
+        super.onResume()
+
+        Wearable
+            .getMessageClient(this)
+            .addListener(this)
+    }
 
     override fun onPause() {
 
-        screenActive = false
-
-        dataClient.removeListener(this)
+        Wearable
+            .getMessageClient(this)
+            .removeListener(this)
 
         super.onPause()
     }
 }
 
-
 // =====================================================
-// DASHBOARD
+// WATCH SCREEN
 // =====================================================
 
 @Composable
-fun Dashboard(
-    heartRate: String?,
-    measurementTime: String?,
-    errorMessage: String?,
-    isLoading: Boolean
+private fun WatchScreen(
+    heartRate: Int,
+    measuring: Boolean,
+    selectedActivity: String,
+    onActivitySelected: (String) -> Unit
 ) {
 
-    val scrollState =
-        rememberScrollState()
+    var showActivities by remember {
+        mutableStateOf(false)
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundColor)
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(
+                horizontal = 18.dp,
+                vertical = 22.dp
+            ),
         horizontalAlignment =
-            Alignment.CenterHorizontally
+            Alignment.CenterHorizontally,
+        verticalArrangement =
+            Arrangement.spacedBy(10.dp)
     ) {
 
-        // =================================================
-        // HEADER
-        // =================================================
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-
-            horizontalArrangement =
-                Arrangement.SpaceBetween,
-
-            verticalAlignment =
-                Alignment.CenterVertically
-        ) {
-
-            Text(
-                text = "AIHM",
-                color = CyanColor,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Surface(
-                color =
-                    Color(0xFF1E3A8A)
-                        .copy(alpha = 0.30f),
-
-                shape =
-                    RoundedCornerShape(12.dp)
-            ) {
-
-                Text(
-                    text = "PROTOTYPE",
-                    color = Color(0xFF60A5FA),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-
-                    modifier =
-                        Modifier.padding(
-                            horizontal = 8.dp,
-                            vertical = 4.dp
-                        )
-                )
-            }
-        }
-
-
-        Spacer(
-            modifier =
-                Modifier.height(8.dp)
+        Text(
+            text = "AIHM",
+            color = AccentColor,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
         )
 
-
-        // =================================================
-        // TITLE
-        // =================================================
-
         Text(
-            text = "Your heart rate",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
+            text = "♥️",
+            color = HeartColor,
+            fontSize = 54.sp
         )
 
         Text(
             text =
-                "Your latest smartwatch reading, in one place",
-
-            color = Color.Gray,
-            fontSize = 13.sp,
-            modifier = Modifier.fillMaxWidth()
+                if (heartRate > 0)
+                    "$heartRate BPM"
+                else
+                    "-- BPM",
+            color = MainTextColor,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold
         )
 
+        Text(
+            text =
+                if (measuring)
+                    "Monitoring heart rate"
+                else
+                    "Waiting",
+            color = SecondaryTextColor,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center
+        )
 
         Spacer(
-            modifier =
-                Modifier.height(16.dp)
+            modifier = Modifier.height(4.dp)
         )
 
-
-        // =================================================
-        // HEART RATE CARD
-        // =================================================
+        // =============================================
+        // ACTIVITY — OPTIONAL
+        // =============================================
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp),
-
-            colors =
-                CardDefaults.cardColors(
-                    containerColor =
-                        MainCardColor
-                ),
-
-            shape =
-                RoundedCornerShape(20.dp)
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp)
-            ) {
-
-                Text(
-                    text = "LATEST READING",
-                    color = Color.Gray,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-
-                    modifier =
-                        Modifier.align(
-                            Alignment.TopStart
-                        )
-                )
-
-
-                // =========================================
-                // ERROR
-                // =========================================
-
-                if (errorMessage != null) {
-
-                    Column(
-                        modifier =
-                            Modifier.align(
-                                Alignment.Center
-                            ),
-
-                        horizontalAlignment =
-                            Alignment.CenterHorizontally
-                    ) {
-
-                        StableBrokenHeart()
-
-                        Spacer(
-                            modifier =
-                                Modifier.height(5.dp)
-                        )
-
-                        Text(
-                            text = "Connection Error",
-                            color = HeartRed,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text = errorMessage,
-                            color = Color.Gray,
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-
-
-                // =========================================
-                // LOADING
-                // =========================================
-
-                else if (isLoading) {
-
-                    Column(
-                        modifier =
-                            Modifier.align(
-                                Alignment.Center
-                            ),
-
-                        horizontalAlignment =
-                            Alignment.CenterHorizontally
-                    ) {
-
-                        StableChargingHeart()
-
-                        Spacer(
-                            modifier =
-                                Modifier.height(5.dp)
-                        )
-
-                        Text(
-                            text =
-                                "Reading heart rate...",
-
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text =
-                                "Receiving data from watch",
-
-                            color = Color.Gray,
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-
-
-                // =========================================
-                // SUCCESS
-                // =========================================
-
-                else if (heartRate != null) {
-
-                    Column(
-                        modifier =
-                            Modifier.align(
-                                Alignment.Center
-                            ),
-
-                        horizontalAlignment =
-                            Alignment.CenterHorizontally
-                    ) {
-
-                        StableBeatingHeart()
-
-                        Row(
-                            verticalAlignment =
-                                Alignment.Bottom
-                        ) {
-
-                            Text(
-                                text = heartRate,
-                                color = Color.White,
-                                fontSize = 62.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Spacer(
-                                modifier =
-                                    Modifier.width(8.dp)
-                            )
-
-                            Text(
-                                text = "BPM",
-                                color = CyanColor,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-
-                                modifier =
-                                    Modifier.padding(
-                                        bottom = 11.dp
-                                    )
-                            )
-                        }
-                    }
-
-                    Text(
-                        text =
-                            measurementTime
-                                ?: "Measured recently",
-
-                        color = Color.LightGray,
-                        fontSize = 12.sp,
-
-                        modifier =
-                            Modifier.align(
-                                Alignment.BottomCenter
-                            )
-                    )
-                }
-
-
-                // =========================================
-                // NO DATA
-                // =========================================
-
-                else {
-
-                    Column(
-                        modifier =
-                            Modifier.align(
-                                Alignment.Center
-                            ),
-
-                        horizontalAlignment =
-                            Alignment.CenterHorizontally
-                    ) {
-
-                        StableChargingHeart()
-
-                        Text(
-                            text =
-                                "Waiting for reading...",
-
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
-
-
-        Spacer(
-            modifier =
-                Modifier.height(16.dp)
-        )
-
-
-        // =================================================
-        // MEASUREMENT TIME
-        // =================================================
-
-        InfoCard(
-            title = "Measurement time",
-
-            value =
-                measurementTime
-                    ?: "Waiting for measurement..."
-        )
-
-
-        Spacer(
-            modifier =
-                Modifier.height(12.dp)
-        )
-
-
-        // =================================================
-        // DATA UPDATES
-        // =================================================
-
-        InfoCard(
-            title = "Data updates",
-
-            value =
-                when {
-
-                    errorMessage != null ->
-                        "Connection problem"
-
-                    isLoading ->
-                        "Receiving smartwatch data..."
-
-                    heartRate != null ->
-                        "✓ Watch data received"
-
-                    else ->
-                        "Waiting for watch..."
-                }
-        )
-
-
-        Spacer(
-            modifier =
-                Modifier.height(12.dp)
-        )
-
-
-        // =================================================
-        // CLASSIFICATION
-        // =================================================
-
-        val rateInt =
-            heartRate?.toIntOrNull()
-
-        Card(
+            onClick = {
+                showActivities = true
+            },
             modifier =
                 Modifier.fillMaxWidth(),
-
+            shape =
+                RoundedCornerShape(18.dp),
             colors =
                 CardDefaults.cardColors(
-                    containerColor =
-                        InfoCardColor
-                ),
-
-            shape =
-                RoundedCornerShape(16.dp)
+                    containerColor = CardColor
+                )
         ) {
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-
+                    .padding(12.dp),
                 horizontalAlignment =
                     Alignment.CenterHorizontally
             ) {
 
                 Text(
-                    text =
-                        "Heart rate classification",
-
-                    color = Color.Gray,
-                    fontSize = 11.sp
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(6.dp)
+                    text = "Activity",
+                    color =
+                        SecondaryTextColor,
+                    fontSize = 10.sp
                 )
 
                 Text(
                     text =
-                        when {
+                        activityLabel(
+                            selectedActivity
+                        ),
+                    color = AccentColor,
+                    fontSize = 14.sp,
+                    fontWeight =
+                        FontWeight.Bold,
+                    textAlign =
+                        TextAlign.Center
+                )
 
-                            rateInt == null ->
-                                "Not available yet"
-
-                            rateInt in 60..100 ->
-                                "Normal Heart Rate"
-
-                            rateInt > 100 ->
-                                "⚠ High Heart Rate"
-
-                            else ->
-                                "⚠ Low Heart Rate"
-                        },
-
+                Text(
+                    text = "Optional • Tap to change",
                     color =
-                        when {
-
-                            rateInt == null ->
-                                Color.Gray
-
-                            rateInt in 60..100 ->
-                                CyanColor
-
-                            else ->
-                                HeartRed
-                        },
-
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                        SecondaryTextColor,
+                    fontSize = 9.sp,
+                    textAlign =
+                        TextAlign.Center
                 )
             }
         }
 
+        Text(
+            text =
+                "AIHM Prototype",
+            color =
+                SecondaryTextColor,
+            fontSize = 9.sp
+        )
 
         Spacer(
-            modifier =
-                Modifier.height(20.dp)
+            modifier = Modifier.height(20.dp)
         )
     }
-}
 
+    // =================================================
+    // ACTIVITY POPUP
+    // =================================================
 
-// =====================================================
-// FIXED HEART CONTAINER
-//
-// مهم:
-// حجم هذا الـ Box ثابت دائمًا.
-// الحركة تحصل داخل القلب فقط.
-// لذلك لا تتحرك أي بطاقة أو زر.
-// =====================================================
+    if (showActivities) {
 
-@Composable
-private fun HeartContainer(
-    content: @Composable BoxScope.() -> Unit
-) {
+        AlertDialog(
+            onDismissRequest = {
+                showActivities = false
+            },
 
-    Box(
-        modifier = Modifier
-            .width(90.dp)
-            .height(82.dp),
+            title = {
+                Text(
+                    text = "Activity"
+                )
+            },
 
-        contentAlignment =
-            Alignment.Center,
+            text = {
 
-        content = content
-    )
-}
+                Column {
 
+                    ActivityChoices.forEach {
+                            (code, label) ->
 
-// =====================================================
-// LOADING HEART
-// =====================================================
+                        TextButton(
+                            onClick = {
 
-@Composable
-fun StableChargingHeart() {
+                                showActivities =
+                                    false
 
-    val transition =
-        rememberInfiniteTransition(
-            label = "chargingHeart"
-        )
+                                onActivitySelected(
+                                    code
+                                )
+                            },
+                            modifier =
+                                Modifier.fillMaxWidth()
+                        ) {
 
-
-    val alpha by
-    transition.animateFloat(
-
-        initialValue = 0.25f,
-        targetValue = 1f,
-
-        animationSpec =
-            infiniteRepeatable(
-
-                animation =
-                    tween(
-                        durationMillis = 900,
-                        easing =
-                            LinearEasing
-                    ),
-
-                repeatMode =
-                    RepeatMode.Reverse
-            ),
-
-        label = "chargingAlpha"
-    )
-
-
-    val scale by
-    transition.animateFloat(
-
-        initialValue = 0.78f,
-        targetValue = 1f,
-
-        animationSpec =
-            infiniteRepeatable(
-
-                animation =
-                    tween(
-                        durationMillis = 900,
-                        easing =
-                            FastOutSlowInEasing
-                    ),
-
-                repeatMode =
-                    RepeatMode.Reverse
-            ),
-
-        label = "chargingScale"
-    )
-
-
-    HeartContainer {
-
-        Text(
-            text = "♥️",
-
-            color = HeartRed,
-
-            fontSize = 66.sp,
-
-            fontWeight =
-                FontWeight.Bold,
-
-            modifier =
-                Modifier.graphicsLayer {
-
-                    /*
-                     * هذه الحركة رسومية فقط.
-                     * لا تغيّر حجم الـ Layout.
-                     */
-
-                    scaleX = scale
-                    scaleY = scale
-                    this.alpha = alpha
+                            Text(
+                                text = label
+                            )
+                        }
+                    }
                 }
-        )
-    }
-}
+            },
 
+            confirmButton = {
 
-// =====================================================
-// SUCCESS HEART - BEATING
-// =====================================================
+                TextButton(
+                    onClick = {
+                        showActivities =
+                            false
+                    }
+                ) {
 
-@Composable
-fun StableBeatingHeart() {
-
-    val transition =
-        rememberInfiniteTransition(
-            label = "beatingHeart"
-        )
-
-
-    val scale by
-    transition.animateFloat(
-
-        initialValue = 0.90f,
-
-        targetValue = 1.08f,
-
-        animationSpec =
-            infiniteRepeatable(
-
-                animation =
-                    tween(
-                        durationMillis = 450,
-                        easing =
-                            FastOutSlowInEasing
-                    ),
-
-                repeatMode =
-                    RepeatMode.Reverse
-            ),
-
-        label = "beatScale"
-    )
-
-
-    HeartContainer {
-
-        Text(
-            text = "♥️",
-
-            color = HeartRed,
-
-            fontSize = 66.sp,
-
-            fontWeight =
-                FontWeight.Bold,
-
-            modifier =
-                Modifier.graphicsLayer {
-
-                    /*
-                     * القلب نفسه ينبض.
-                     * الـ Box الخارجي ثابت.
-                     */
-
-                    scaleX = scale
-                    scaleY = scale
+                    Text(
+                        text = "Cancel"
+                    )
                 }
+            }
         )
     }
 }
 
-
 // =====================================================
-// ERROR HEART
-// =====================================================
-
-@Composable
-fun StableBrokenHeart() {
-
-    HeartContainer {
-
-        Text(
-            text = "💔",
-            fontSize = 52.sp
-        )
-    }
-}
-
-
-// =====================================================
-// INFORMATION CARD
+// ACTIVITY LABEL
 // =====================================================
 
-@Composable
-fun InfoCard(
-    title: String,
-    value: String
-) {
+private fun activityLabel(
+    code: String
+): String {
 
-    Card(
-        modifier =
-            Modifier.fillMaxWidth(),
-
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    InfoCardColor
-            ),
-
-        shape =
-            RoundedCornerShape(16.dp)
-    ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-
-            horizontalAlignment =
-                Alignment.CenterHorizontally
-        ) {
-
-            Text(
-                text = title,
-                color = Color.Gray,
-                fontSize = 11.sp
-            )
-
-            Spacer(
-                modifier =
-                    Modifier.height(5.dp)
-            )
-
-            Text(
-                text = value,
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight =
-                    FontWeight.SemiBold
-            )
+    return ActivityChoices
+        .firstOrNull {
+            it.first == code
         }
-    }
+        ?.second
+        ?: "Not specified"
 }
