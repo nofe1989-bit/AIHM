@@ -1,0 +1,114 @@
+{
+  "run_folder": "run_001",
+  "seed": 42,
+  "task10_standard": {
+    "high_bpm": 100.0,
+    "low_bpm": 60.0,
+    "persistence": "per_window"
+  },
+  "task9_standard": {
+    "high_bpm": 100.0,
+    "low_bpm": 50.0,
+    "persistence_windows": 2,
+    "persistence_minutes": 10,
+    "note": "rest/coverage >=80% filter omitted \u2014 not available in Task8 feature files"
+  },
+  "split_provenance": {
+    "task9_group_based": "Task9\\results\\group_split.csv",
+    "task9_group_policy": "figshare deviceId proxy groups from Task 9",
+    "personal_baseline_policy": "recomputed from training rows only; unseen groups use training global mean",
+    "threshold_policy": "tuned on validation by agreement with fixed Task 10 baseline; not independent clinical ground truth"
+  },
+  "splits": {
+    "time_based": {
+      "split": "time_based",
+      "best_model": "XGBoost",
+      "train_n": 27214,
+      "val_n": 5815,
+      "test_n": 5882,
+      "train_wearers": 49,
+      "val_wearers": 49,
+      "test_wearers": 49,
+      "metrics": {
+        "RandomForest": {
+          "val_MAE": 7.113,
+          "val_RMSE": 9.432,
+          "val_R2": 0.32,
+          "test_MAE": 7.393,
+          "test_RMSE": 10.247,
+          "test_R2": 0.231
+        },
+        "XGBoost": {
+          "val_MAE": 6.976,
+          "val_RMSE": 9.113,
+          "val_R2": 0.365,
+          "test_MAE": 7.133,
+          "test_RMSE": 9.789,
+          "test_R2": 0.298
+        }
+      },
+      "tuned_threshold_bpm": 14.934,
+      "tuned_k": 2.75,
+      "residual_MAD": 5.431,
+      "threshold_objective": "agreement_with_task10_fixed_threshold_baseline",
+      "anomaly_vs_task10_baseline": {
+        "model_flag_rate_pct": 10.354,
+        "baseline_flag_rate_pct": 8.824,
+        "precision_vs_baseline": 0.412,
+        "recall_vs_baseline": 0.484,
+        "F1_vs_baseline": 0.445,
+        "cohen_kappa": 0.387,
+        "n_flagged_by_model": 609,
+        "n_flagged_by_baseline": 519,
+        "n_overlap": 251,
+        "n_model_only": 358,
+        "n_baseline_only": 268
+      }
+    },
+    "task9_group_based": {
+      "split": "task9_group_based",
+      "best_model": "XGBoost",
+      "train_n": 22983,
+      "val_n": 8006,
+      "test_n": 7922,
+      "train_wearers": 29,
+      "val_wearers": 9,
+      "test_wearers": 11,
+      "metrics": {
+        "RandomForest": {
+          "val_MAE": 8.227,
+          "val_RMSE": 10.71,
+          "val_R2": -0.014,
+          "test_MAE": 9.355,
+          "test_RMSE": 12.245,
+          "test_R2": -0.062
+        },
+        "XGBoost": {
+          "val_MAE": 8.105,
+          "val_RMSE": 10.396,
+          "val_R2": 0.044,
+          "test_MAE": 9.322,
+          "test_RMSE": 12.16,
+          "test_R2": -0.047
+        }
+      },
+      "tuned_threshold_bpm": 17.246,
+      "tuned_k": 2.75,
+      "residual_MAD": 6.271,
+      "threshold_objective": "agreement_with_task10_fixed_threshold_baseline",
+      "anomaly_vs_task10_baseline": {
+        "model_flag_rate_pct": 14.592,
+        "baseline_flag_rate_pct": 8.407,
+        "precision_vs_baseline": 0.482,
+        "recall_vs_baseline": 0.836,
+        "F1_vs_baseline": 0.611,
+        "cohen_kappa": 0.565,
+        "n_flagged_by_model": 1156,
+        "n_flagged_by_baseline": 666,
+        "n_overlap": 557,
+        "n_model_only": 599,
+        "n_baseline_only": 109
+      }
+    }
+  }
+}

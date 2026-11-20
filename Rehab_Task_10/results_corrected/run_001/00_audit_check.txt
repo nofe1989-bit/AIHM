@@ -1,0 +1,8 @@
+AUDIT CHECK (file vs audit.json)
+============================================================
+  figshare_features_5min.csv       rows= 38911/38911  cols=17/17 -> OK
+  galaxyppg_features_5min.csv      rows=   310/310    cols=9/9 -> OK
+  lyan_features_5min.csv           rows=  5461/5461   cols=9/9 -> OK
+  nofe_features_5min.csv           rows=  2687/2687   cols=9/9 -> OK
+  definition: 5-minute windows, not five-minute continuous measurements; source files kept separate
+  lineage   : Features used by Task 11; Task 9 split column removed from Task 8 files
