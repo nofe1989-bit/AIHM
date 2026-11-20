@@ -1,0 +1,51 @@
+{
+  "sources": [
+    {
+      "file": "figshare_features_5min.csv",
+      "windows": 38911,
+      "columns": 17,
+      "missing_hr": 0,
+      "hr_outside_30_220": 0,
+      "bad_time": 0,
+      "first_time": "2021-03-04 03:40:00+00:00",
+      "last_time": "2021-04-08 03:05:00+00:00",
+      "sha256": "af443d8436b198d93f55f2462ed07a9e87cfd4e636a6659365cf4f0162325eec"
+    },
+    {
+      "file": "galaxyppg_features_5min.csv",
+      "windows": 310,
+      "columns": 9,
+      "missing_hr": 27,
+      "hr_outside_30_220": 0,
+      "bad_time": 0,
+      "first_time": "2024-03-19 01:30:00+00:00",
+      "last_time": "2024-04-11 08:15:00+00:00",
+      "sha256": "43447dc7ba8c44ca599c0d58f10bbb5edbb018ba8ca48b77fa81d9f8ee4f4b86"
+    },
+    {
+      "file": "lyan_features_5min.csv",
+      "windows": 5461,
+      "columns": 9,
+      "missing_hr": 0,
+      "hr_outside_30_220": 0,
+      "bad_time": 0,
+      "first_time": "2025-11-04 19:40:00+00:00",
+      "last_time": "2026-10-06 16:20:00+00:00",
+      "sha256": "028633cc11874a9d76749d439c8fde01f9cc5e86d447866256d299cfa06db1d6"
+    },
+    {
+      "file": "nofe_features_5min.csv",
+      "windows": 2687,
+      "columns": 9,
+      "missing_hr": 0,
+      "hr_outside_30_220": 0,
+      "bad_time": 0,
+      "first_time": "2024-12-16 15:30:00+00:00",
+      "last_time": "2026-10-06 17:30:00+00:00",
+      "sha256": "fe7297010a757d9a2419e3e7edc280012973ca2df385f428a818b9aa36cb801b"
+    }
+  ],
+  "definition": "5-minute windows, not five-minute continuous measurements; source files kept separate",
+  "lineage": "Features used by Task 11; Task 9 split column removed from Task 8 files",
+  "splits_in_task8": false
+}
