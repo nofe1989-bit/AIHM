@@ -1,0 +1,1 @@
+export_id,device_id,device_model,device_type_verified,source_datauuid,start_time_utc,end_time_utc,start_time_local,utc_offset_minutes,duration_seconds,hr_bpm_raw,hr_bpm,kind,valid,missing_json_detail
