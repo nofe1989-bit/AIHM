@@ -1,0 +1,27 @@
+{
+  "selected_model": "Task11 Figshare global Isolation Forest",
+  "model_file": "selected_figshare_isolation_forest.onnx",
+  "input_name": "X",
+  "output_name": "score_samples",
+  "input_shape": [
+    1,
+    3
+  ],
+  "feature_order": [
+    "hr_bpm",
+    "steps_total",
+    "steps_missing"
+  ],
+  "numeric_scaling": "none; SimpleImputer median is embedded in ONNX",
+  "imputer_medians": [
+    75.58289918809201,
+    0.0,
+    1.0
+  ],
+  "missing_steps_policy": "steps_total=NaN and steps_missing=1; if observed, value and 0",
+  "threshold": -0.609711827982791,
+  "flag_rule": "score_samples <= threshold",
+  "window_minutes": 5,
+  "input_hr": "mean HR in BPM for completed 5-minute window",
+  "activity_context": "model input does not encode verified exercise; app must collect context separately"
+}

@@ -1,0 +1,188 @@
+{
+  "global_models": [
+    {
+      "source": "figshare",
+      "train_windows": 22983,
+      "validation_windows": 8006,
+      "test_windows": 7922,
+      "train_groups": 29,
+      "validation_groups": 9,
+      "test_groups": 11,
+      "selection": {
+        "contamination_candidate": 0.05,
+        "threshold": -0.609711827982791,
+        "validation_flag_rate": 0.04584061953534849,
+        "validation_synthetic_recall": 1.0
+      },
+      "candidate_results": [
+        {
+          "contamination_candidate": 0.005,
+          "threshold": -0.7431061187636231,
+          "validation_flag_rate": 0.007369472895328503,
+          "validation_synthetic_recall": 0.0
+        },
+        {
+          "contamination_candidate": 0.01,
+          "threshold": -0.7046252695481205,
+          "validation_flag_rate": 0.011366475143642269,
+          "validation_synthetic_recall": 0.027777777777777776
+        },
+        {
+          "contamination_candidate": 0.02,
+          "threshold": -0.677074301975646,
+          "validation_flag_rate": 0.015238571071696228,
+          "validation_synthetic_recall": 0.027777777777777776
+        },
+        {
+          "contamination_candidate": 0.05,
+          "threshold": -0.609711827982791,
+          "validation_flag_rate": 0.04584061953534849,
+          "validation_synthetic_recall": 1.0
+        }
+      ],
+      "test_flag_rate_unlabelled": 0.04455945468316082
+    },
+    {
+      "source": "galaxy",
+      "train_windows": 161,
+      "validation_windows": 94,
+      "test_windows": 55,
+      "train_groups": 12,
+      "validation_groups": 7,
+      "test_groups": 4,
+      "selection": {
+        "contamination_candidate": 0.01,
+        "threshold": -0.6740367607722576,
+        "validation_flag_rate": 0.010638297872340425,
+        "validation_synthetic_recall": null
+      },
+      "candidate_results": [
+        {
+          "contamination_candidate": 0.005,
+          "threshold": -0.6894639059746372,
+          "validation_flag_rate": 0.0,
+          "validation_synthetic_recall": null
+        },
+        {
+          "contamination_candidate": 0.01,
+          "threshold": -0.6740367607722576,
+          "validation_flag_rate": 0.010638297872340425,
+          "validation_synthetic_recall": null
+        },
+        {
+          "contamination_candidate": 0.02,
+          "threshold": -0.6630626935522668,
+          "validation_flag_rate": 0.02127659574468085,
+          "validation_synthetic_recall": null
+        },
+        {
+          "contamination_candidate": 0.05,
+          "threshold": -0.6210812657903027,
+          "validation_flag_rate": 0.0425531914893617,
+          "validation_synthetic_recall": null
+        }
+      ],
+      "test_flag_rate_unlabelled": 0.01818181818181818
+    }
+  ],
+  "synthetic_recall": [
+    {
+      "data_split": "test",
+      "injected_label": "high",
+      "sum": 22,
+      "count": 22,
+      "mean": 1.0
+    },
+    {
+      "data_split": "test",
+      "injected_label": "low",
+      "sum": 22,
+      "count": 22,
+      "mean": 1.0
+    },
+    {
+      "data_split": "train",
+      "injected_label": "high",
+      "sum": 58,
+      "count": 58,
+      "mean": 1.0
+    },
+    {
+      "data_split": "train",
+      "injected_label": "low",
+      "sum": 58,
+      "count": 58,
+      "mean": 1.0
+    },
+    {
+      "data_split": "validation",
+      "injected_label": "high",
+      "sum": 18,
+      "count": 18,
+      "mean": 1.0
+    },
+    {
+      "data_split": "validation",
+      "injected_label": "low",
+      "sum": 18,
+      "count": 18,
+      "mean": 1.0
+    }
+  ],
+  "exercise_control_false_alarm_windows": [
+    {
+      "data_split": "test",
+      "sum": 0,
+      "count": 7,
+      "mean": 0.0
+    },
+    {
+      "data_split": "train",
+      "sum": 0,
+      "count": 15,
+      "mean": 0.0
+    },
+    {
+      "data_split": "validation",
+      "sum": 0,
+      "count": 8,
+      "mean": 0.0
+    }
+  ],
+  "personal_models_trained": 47,
+  "personal_models_skipped": [
+    {
+      "source": "figshare",
+      "group_id": "ba30",
+      "first_week_windows": 5,
+      "first_week_dates": 1,
+      "later_windows": 1040,
+      "status": "insufficient_calibration_or_followup"
+    },
+    {
+      "source": "figshare",
+      "group_id": "dk68",
+      "first_week_windows": 26,
+      "first_week_dates": 6,
+      "later_windows": 112,
+      "status": "insufficient_calibration_or_followup"
+    },
+    {
+      "source": "figshare",
+      "group_id": "vh17",
+      "first_week_windows": 27,
+      "first_week_dates": 6,
+      "later_windows": 91,
+      "status": "insufficient_calibration_or_followup"
+    },
+    {
+      "source": "nofe",
+      "group_id": "nofe_export_unverified",
+      "first_week_windows": 2,
+      "first_week_dates": 1,
+      "total_windows": 2687,
+      "status": "insufficient_first_week"
+    }
+  ],
+  "interpretation": "Unlabelled originals are presumed-normal candidates, not verified normal readings. Synthetic recall and exercise control flags are research metrics, not clinical performance."
+}

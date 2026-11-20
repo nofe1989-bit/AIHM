@@ -1,0 +1,11 @@
+source,split,model,windows,flags,flag_rate,interpretation
+lyan,validation,FixedThreshold,1087,188,0.17295308187672492,"Unlabelled; no accuracy, F1 or false alarm claim"
+lyan,validation,IF_Figshare_transfer,1087,55,0.050597976080956765,"Unlabelled; no accuracy, F1 or false alarm claim"
+lyan,validation,IF_Lyan_personal,1087,15,0.013799448022079117,"Unlabelled; no accuracy, F1 or false alarm claim"
+lyan,test,FixedThreshold,1089,190,0.17447199265381083,"Unlabelled; no accuracy, F1 or false alarm claim"
+lyan,test,IF_Figshare_transfer,1089,33,0.030303030303030304,"Unlabelled; no accuracy, F1 or false alarm claim"
+lyan,test,IF_Lyan_personal,1089,5,0.004591368227731864,"Unlabelled; no accuracy, F1 or false alarm claim"
+nofe,validation,FixedThreshold,525,38,0.07238095238095238,"Unlabelled; no accuracy, F1 or false alarm claim"
+nofe,validation,IF_Figshare_transfer,525,6,0.011428571428571429,"Unlabelled; no accuracy, F1 or false alarm claim"
+nofe,test,FixedThreshold,536,53,0.09888059701492537,"Unlabelled; no accuracy, F1 or false alarm claim"
+nofe,test,IF_Figshare_transfer,536,19,0.03544776119402985,"Unlabelled; no accuracy, F1 or false alarm claim"

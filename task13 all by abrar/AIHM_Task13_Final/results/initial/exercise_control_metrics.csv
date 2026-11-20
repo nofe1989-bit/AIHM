@@ -1,0 +1,5 @@
+split,model,exercise_windows,flags,exercise_control_flag_rate,windows_mean_hr_over_100
+test,FixedThreshold,7,4,0.5714285714285714,4
+test,IsolationForest,7,0,0.0,4
+validation,FixedThreshold,8,3,0.375,3
+validation,IsolationForest,8,0,0.0,3
