@@ -1,5 +1,0 @@
-split,model,reference_windows,injected_windows,tn,fp,fn,tp,precision,recall,f1,macro_f1,synthetic_events,events_both_windows_flagged,events_any_window_flagged
-validation,FixedThreshold,36,36,36,0,0,36,1.0,1.0,1.0,1.0,18,18,18
-validation,IsolationForest,36,36,35,1,0,36,0.972972972972973,1.0,0.9863013698630136,0.9861084314103801,18,18,18
-test,FixedThreshold,44,44,44,0,0,44,1.0,1.0,1.0,1.0,22,22,22
-test,IsolationForest,44,44,43,1,0,44,0.9777777777777777,1.0,0.9887640449438202,0.9886348960351286,22,22,22
