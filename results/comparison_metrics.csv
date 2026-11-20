@@ -1,0 +1,7 @@
+split,model,reference_windows,injected_windows,synthetic_events,events_both_windows_flagged,events_any_window_flagged,exercise_control_windows,exercise_flags,exercise_flag_rate,n,tn,fp,fn,tp,precision,recall,f1,macro_f1
+validation,Fixed HR threshold,36,36,18,18,18,8,3,0.375,72,36,0,0,36,1.0,1.0,1.0,1.0
+validation,Task10 XGBoost replay,36,36,18,18,18,8,3,0.375,72,36,0,0,36,1.0,1.0,1.0,1.0
+validation,Task11 Isolation Forest,36,36,18,18,18,8,1,0.125,72,35,1,0,36,0.972972972972973,1.0,0.9863013698630136,0.9861084314103801
+test,Fixed HR threshold,44,44,22,22,22,7,4,0.5714285714285714,88,44,0,0,44,1.0,1.0,1.0,1.0
+test,Task10 XGBoost replay,44,44,22,22,22,7,6,0.8571428571428571,88,41,3,0,44,0.9361702127659575,1.0,0.967032967032967,0.9658694246929541
+test,Task11 Isolation Forest,44,44,22,22,22,7,2,0.2857142857142857,88,43,1,0,44,0.9777777777777777,1.0,0.9887640449438202,0.9886348960351286
