@@ -1,7 +1,0 @@
-{
-  "sample_count": 19340,
-  "max_absolute_score_difference": 1.9981858667694752e-07,
-  "mean_absolute_score_difference": 6.31066726402228e-08,
-  "decision_mismatches": 0,
-  "comparison": "scikit-learn 1.8.0 vs ONNX Runtime Python 1.32.0; Android app parity not tested"
-}

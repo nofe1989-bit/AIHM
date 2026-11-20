@@ -1,9 +1,0 @@
-source,split,model,windows,flags,flag_rate,interpretation
-figshare,validation,FixedThreshold,8006,559,0.06982263302523108,"Unlabelled flag rate, not clinical false alarm rate"
-figshare,validation,IsolationForest,8006,367,0.04584061953534849,"Unlabelled flag rate, not clinical false alarm rate"
-figshare,test,FixedThreshold,7922,666,0.08406967937389548,"Unlabelled flag rate, not clinical false alarm rate"
-figshare,test,IsolationForest,7922,353,0.04455945468316082,"Unlabelled flag rate, not clinical false alarm rate"
-galaxy,validation,FixedThreshold,94,11,0.11702127659574468,"Unlabelled flag rate, not clinical false alarm rate"
-galaxy,validation,IsolationForest,94,1,0.010638297872340425,"Unlabelled flag rate, not clinical false alarm rate"
-galaxy,test,FixedThreshold,55,8,0.14545454545454545,"Unlabelled flag rate, not clinical false alarm rate"
-galaxy,test,IsolationForest,55,1,0.01818181818181818,"Unlabelled flag rate, not clinical false alarm rate"
